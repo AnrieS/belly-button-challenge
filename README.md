@@ -16,4 +16,4 @@ The next part after fetching the sample data, is to create a tracing data variab
 
 After creating the bar chart, next is the bubble chart. The bubble chart has similar functions to the bar chart except this bubble chart uses markers as mode value to change the size and the color of the value. Similar trace created to call the values, the ids and the labels.
 
-![Alt text](relative/path/to/image.png)
+![Alt text](img/result.png)
