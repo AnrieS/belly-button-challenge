@@ -3,46 +3,7 @@
 // Fetch the JSON data and console log it
 d3.json(url).then(function(data) {
     console.log(data);
-
-    function optionChanged(sample) {
-        console.log("Selected sample:", sample);
-        createBarChart(sample);
-        createBubbleChart(sample);
-        displayMetadata(sample);
-        createGaugeChart(sample);
-    }
     
-
-    function displayMetadata(sample) {
-        let metadata = data.metadata.find(m => m.id == sample);
-        let metadataPanel = d3.select("#sample-metadata");
-
-        // Clear existing metadata
-        metadataPanel.html("");
-
-        // Append each key-value pair to the panel
-        Object.entries(metadata).forEach(([key, value]) => {
-            metadataPanel.append("p").text(`${key}: ${value}`);
-        });
-    }
-
-    // Populate the dropdown menu with IDs
-    const dropdownMenu = d3.select("#selDataset");
-    data.names.forEach(sampleID => {
-        dropdownMenu.append("option").text(sampleID).attr("value", sampleID);
-    });
-
-    // Handle dropdown change
-    dropdownMenu.on("change", function() {
-        let selectedSample = d3.select(this).property("value");
-        displayMetadata(selectedSample); // Display metadata for the selected sample
-        createGaugeChart(selectedSample); // Update the gauge chart for the selected sample
-    });
-
-    // Initial rendering
-    let initialSample = data.names[0];
-    displayMetadata(initialSample); // Display metadata for the initial sample
-    createGaugeChart(initialSample); // Create gauge chart for the initial sample
 
     function createGaugeChart(sample) {
         let sampleData = data.metadata.find(metadata => metadata.id == sample);
@@ -87,7 +48,24 @@ d3.json(url).then(function(data) {
         Plotly.newPlot("gauge", gaugeData, gaugeLayout);
     }
     
+    console.log("Bonus file Hello World");
+    // Initial rendering
+    let initialSample = data.names[0];
+    createGaugeChart(initialSample);
 
+    data.names.forEach(sampleID => {
+        dropdownMenu.append("option").text(sampleID).attr("value", sampleID);
+    });
+
+    function optionChanged(sample) {
+        createGaugeChart(sample);
+        console.log("selected Sample from bonus:", sample);
+    }
+
+    dropdownMenu.on("change", function(){
+        let selectedSample = d3.select(this).property("value");
+        optionChanged(selectedSample)
+    })
 
     function metaData(demographicInfo) {
         let demoSelect = d3.select("#sample-metadata");

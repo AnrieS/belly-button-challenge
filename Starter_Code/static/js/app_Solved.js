@@ -9,79 +9,29 @@ console.log("Data Promise", dataPromise);
 d3.json(url).then(function(data){
     console.log(data);
 
-    function displayMetadata(sample) {
-        let metadata = data.metadata.find(m => m.id == sample);
-        let metadataPanel = d3.select("#sample-metadata");
-
-        // Clear existing metadata
-        metadataPanel.html("");
-
-        // Append each key-value pair to the panel
-        Object.entries(metadata).forEach(([key, value]) => {
-            metadataPanel.append("p").text(`${key}: ${value}`);
-        });
-    }
-    // Populate the dropdown menu with IDs
-    const dropdownMenu = d3.select("#selDataset");
-    data.names.forEach(sampleID => {
-        dropdownMenu.append("option").text(sampleID).attr("value", sampleID);
-    });
-
-    // Handle dropdown change
-    function optionChanged(sample) {
-        console.log("Selected sample:", sample);
-        createBarChart(sample);
-        createBubbleChart(sample);
-        displayMetadata(sample);
-    }
-
-    // Initial rendering
-    let initialSample = data.names[0];
-    createBarChart(initialSample);
-    createBubbleChart(initialSample);
-    displayMetadata(initialSample);
-
-    dropdownMenu.on("change", function(){
-        let selectedSample = d3.select(this).property("value");
-        optionChanged(selectedSample)
-    })
-
     //Creating the barchart
     function createBarChart(sample) {
-
-        // Sort the data and then select top 10 entries
-        let sampleData = data.samples.find(sampleItem => sampleItem.id ===sample);
-        console.log(sampleData);
-
-        // Fetching the top 10 otu_ids
+        // Select the top 10 OTUs for the selected sample
+        let sampleData = data.samples.find(s => s.id === sample);
         let otuIds = sampleData.otu_ids.slice(0, 10).map(id => `OTU ${id}`).reverse();
-        console.log(otuIds);
+        let sampleValues = sampleData.sample_values.slice(0, 10).reverse();
+        let otuLabels = sampleData.otu_labels.slice(0, 10).reverse();
 
-        // Grabbing the values of the top10Data
-        let sampleValues = sampleData.sample_values.slice(0,10).reverse();
-        console.log(sampleValues);
-        
-        // Grabbing the labels from the top10Data
-        let otulabels = sampleData.otu_labels.slice(0, 10).reverse();
-        console.log(otulabels);
-
-        // Creating the Trace data for the barchart
-        let trace_data = {
+        // Create the trace for the bar chart
+        let trace = {
             x: sampleValues,
             y: otuIds,
-            text: otulabels,
+            text: otuLabels,
             type: "bar",
             orientation: "h"
         };
 
-        //layout of the barchart
-        let bar_layout = {
+        let layout = {
             title: "Top 10 OTUs"
-        }
+        };
 
-        // Plotting the bar data
-        Plotly.newPlot("bar", [trace_data], bar_layout);
-
+        // Plot the bar chart
+        Plotly.newPlot("bar", [trace], layout);
     }
 
     // Creating the bubblechart
@@ -111,6 +61,88 @@ d3.json(url).then(function(data){
         Plotly.newPlot("bubble", [traceDataBubble], bubble_layout);
     };
 
+
+    function createGaugeChart(sample) {
+        let sampleData = data.metadata.find(metadata => metadata.id == sample);
+        let washingFrequency = sampleData.wfreq;
+
+        // Create the gauge chart data
+        let gaugeData = [
+            {
+                type: "indicator",
+                mode: "gauge+number",
+                value: washingFrequency,
+                title: { text: "Washing Frequency", font: { size: 24 } },
+                gauge: {
+                    axis: { range: [null, 9], tickwidth: 1, tickcolor: "darkblue" },
+                    bar: { color: "darkblue" },
+                    bgcolor: "white",
+                    borderwidth: 2,
+                    bordercolor: "gray",
+                    steps: [
+                        { range: [0, 1], color: "rgb(248, 243, 236)" },
+                        { range: [1, 2], color: "rgb(244, 241, 229)" },
+                        { range: [2, 3], color: "rgb(233, 230, 202)" },
+                        { range: [3, 4], color: "rgb(229, 231, 179)" },
+                        { range: [4, 5], color: "rgb(213, 228, 157)" },
+                        { range: [5, 6], color: "rgb(183, 204, 146)" },
+                        { range: [6, 7], color: "rgb(140, 191, 136)" },
+                        { range: [7, 8], color: "rgb(138, 187, 143)" },
+                        { range: [8, 9], color: "rgb(133, 180, 138)" }
+                    ]
+                }
+            }
+        ];
+
+        // Set up the layout for the gauge chart
+        let gaugeLayout = {
+            width: 400,
+            height: 300,
+            margin: { t: 0, b: 0 }
+        };
+
+        // Plot the gauge chart
+        Plotly.newPlot("gauge", gaugeData, gaugeLayout);
+    }
+
+    function displayMetadata(sample) {
+        let metadata = data.metadata.find(m => m.id == sample);
+        let metadataPanel = d3.select("#sample-metadata");
+
+        // Clear existing metadata
+        metadataPanel.html("");
+
+        // Append each key-value pair to the panel
+        Object.entries(metadata).forEach(([key, value]) => {
+            metadataPanel.append("p").text(`${key}: ${value}`);
+        });
+    }
+    // Populate the dropdown menu with IDs
+    const dropdownMenu = d3.select("#selDataset");
+    data.names.forEach(sampleID => {
+        dropdownMenu.append("option").text(sampleID).attr("value", sampleID);
+    });
+
+    // Handle dropdown change
+    function optionChanged(sample) {
+        console.log("Selected sample:", sample);
+        createBarChart(sample);
+        createBubbleChart(sample);
+        displayMetadata(sample);
+        createGaugeChart(sample);
+    }
+
+    // Initial rendering
+    let initialSample = data.names[0];
+    createBarChart(initialSample);
+    createBubbleChart(initialSample);
+    displayMetadata(initialSample);
+    createGaugeChart(initialSample);
+
+    dropdownMenu.on("change", function(){
+        let selectedSample = d3.select(this).property("value");
+        optionChanged(selectedSample)
+    })
 
     
     function metaData(demographicInfo) {
